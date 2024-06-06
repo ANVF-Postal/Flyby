@@ -34,7 +34,7 @@ However, every bet there is a chance the machine won't complete the full 256 fra
 
 -Rolling animation during bet
 
--Colored numbers for each multiplier number
+-Unique colors for each multiplier
 
 -Win streak counter
 
