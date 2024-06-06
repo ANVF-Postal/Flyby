@@ -25,9 +25,13 @@ Of course, zero values are most common, and larger numbers are rarer than smalle
 
 Despite how it may feel, the game is not _rigged_ in any way, it's purely random, based on odds. There is no code to make you lose at critical times, or land on a zero that's right next to a nine. During testing, I was surprised by how rigged _my own game felt._
 
-The value of 256 below the machine represents how many frames the machine has left to tick before landing on the final number. This was originally a debug measure, but I found it added an element of suspense where players would try guess the number as it got close to landing.
+The value of 256 below the machine represents how many frames the machine has left to tick before landing on the final number. This was originally a debug measure, but I found it added an element of suspense where players would try to predict the number as it got close to landing.
 
 However, every bet there is a chance the machine won't complete the full 256 frames, and it will jam randomly on a random frame before 256. This does not help or hurt your odds past the first bet, because the numbers are still random either way. Jamming just adds to the fun.
+
+Can you WIN Flyby?
+
+Yes, the offical way to WIN is to BET ZERO, causing the game to quit. After that your current CASH is your score, and the game will print out your run stats. HIGHSCORE means nothing if it's not the balance you left with.
 
 # Features
 -A 64 character long random number sequence, that determines your win
