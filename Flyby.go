@@ -178,11 +178,13 @@ func funcBet() {
   os.Exit(0)
  }
  bets++
+ clean(2)
  funcRoll(bet)
 }
 
 func funcRoll(bet int) {
- clean(5)
+ //clean(5)
+ moveUp(3)
  rate = 10 // old value: 8
  frameMax := 256
  if (jamming == true) { // jamming function
@@ -211,14 +213,16 @@ func funcRoll(bet int) {
   arrSlice = append(arrSlice, result) // stick random number on the end of the slice (array)
   arrSlice = arrSlice[1:] //remove first element
   slicePrint(arrSlice)
-  fmt.Println("--------------^------------------------------------------------")
-  fmt.Println("      / \\  ", (frames+1), "/", frameMax)
+  moveDown(2)
+  //fmt.Println("--------------^------------------------------------------------")
+  fmt.Println("      / \\  ", (frames+1), "/", frameMax, "   ") // spaces at the end to wipe remains
   time.Sleep(time.Duration(rate) * time.Millisecond)
   if (frames > frameMax/2) {
    rate = rate + 1
   }
   if (frames < jam - 1) { //replace jam with frameMax if it breaks!
-    clean(3)
+   //clean(3)
+   moveUp(3)
   }
  }
  if (jammed == true) {
@@ -328,10 +332,18 @@ func color (col string) { // short way of coloring terminal. Reset with color(Re
         fmt.Print(col)
 }
 
+func moveUp (amt int) {
+        fmt.Print("\x1b[",amt,"F")
+}
+
+func moveDown (amt int) {
+        fmt.Print("\x1b[",amt,"E")
+}
+
 func slicePrint (slice []int) { //prints a slice without commas, spaces or []
      for i := 1; i < len(slice); i++ {
         //fmt.Print(slice[i])
         fmt.Printf("%s%d%s", colorMap[slice[i]], slice[i], Reset)
     }
-    fmt.Print("\n")
+    //fmt.Print("\n")
 }
