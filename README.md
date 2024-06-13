@@ -23,7 +23,7 @@ Cash: $700 WON! +$600
 ```
 Of course, zero values are most common, and larger numbers are rarer than smaller numbers. 
 
-Despite how it may feel, the game is not _rigged_ in any way, it's purely random, based on odds. There is no code to make you lose at critical times, or land on a zero that's right next to a nine. During testing, I was surprised by how rigged _my own game felt._
+Despite how it may feel, the game is not _rigged_ in any way, it's purely random, based on odds. There is no code to make you lose at critical times, or land on a zero that's right next to a nine. During testing, I was surprised by how rigged _my own game felt._ Technically, you can rig the game by setting either ```rigged``` or ```winner``` to true in the code, recompile, and you'll either get a 9 every time, or a zero right next to a 9 :)
 
 The value of 256 below the machine represents how many frames the machine has left to tick before landing on the final number. This was originally a debug measure, but I found it added an element of suspense where players would try to predict the number as it got close to landing.
 
@@ -47,6 +47,8 @@ Yes, the offical way to WIN is to BET ZERO, causing the game to quit. After that
 -Extensively commented code
 
 -Anti-gambling sentiment
+
+-Dumb achievements
 
 -JAMMING
 
