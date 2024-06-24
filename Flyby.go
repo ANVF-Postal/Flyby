@@ -17,6 +17,8 @@ var (
  arrSize = 64 // Number of cells in the rolling array
  winStreak int // Count how many wins in a row
  jam int
+ achievements int
+ perceptive int
 //bools
  celebrateMil = true // Celebrate breaking over one million
  celebrate1k  = true // Celebrate breaking a thousand
@@ -30,6 +32,8 @@ var (
  jammed  = false // This is set if the machine jams
  rigged  = false // ALWAYS lose, right next to a  9
  winner  = false // ALWAYS roll 9
+//strings
+ tickerMode = "Perception"
 //arrays
  arrSlice = make([]int, arrSize) // Where the rolling numbers are stored
 //ANSI colors set to strings. Print any of these strings to color the terminal
@@ -48,10 +52,11 @@ var (
     BMagenta= "\033[95m"
     BCyan   = "\033[96m"
     White   = "\033[97m"
+    Black   = "\033[30m"
 
     colorMap = map[int]string{ // set the color of each number
-    0: Gray,
-    1: White,
+    0: Black,
+    1: White, //1 can never occur, but if it did
     2: White,
     3: Cyan,
     4: BBlue,
@@ -74,9 +79,9 @@ func clean(x int) { //where "X" is the number of lines you want to clean
 func progWrite(s string, delayMS int) { //write the given string out one letter at a time
         last = 0 // reset count each time prog write is called
         for _, letter := range s {
-             fmt.Printf("%c", letter)
-             last++ //call "last" in progDel to erase these lines
-             time.Sleep(time.Duration(delayMS) * time.Millisecond)
+                fmt.Printf("%c", letter)
+                last++ //call "last" in progDel to erase these lines
+                time.Sleep(time.Duration(delayMS) * time.Millisecond)
         }
 }
 
@@ -91,44 +96,21 @@ func progDel(rm int, dly int) { //won't work across lines
 }
 
 func main() {
-//intro movie
+// intro movie
 // maybe add a check for terminal size here?
+        //begin startup checks
+        startupChecks()
+        //end startup checks
         cash = 100
         score = cash
         winStreak = 0
+        //Reset = Green // weed mode
+        color(Reset)
         rand.Seed(time.Now().UnixNano())
         progWrite("---FLYBY------V------------------------------------------------\n", 50)
-        sw := rand.Intn(11) // RNG to pick a quote. Value stored in "sw" variable
-        //fmt.Print(BRed) // color the following quotes
-        color(BRed)
-        switch sw {
-        case 0:
-        progWrite(" BET YOUR    MAX     \n", 200)
-        case 1:
-        progWrite(" DO  YOUR    WORST   \n", 200)
-        case 2:
-        progWrite(" TIME        HEALS   NOTHING \n", 200)
-        case 3:
-        progWrite(" IT'S        ALL     OVER    \n", 200)
-        case 4:
-        progWrite(" MONEY       FOR     NOTHING \n", 200)
-        case 5:
-        progWrite(" WHO LAUGHS  LAST?   \n", 200)
-        case 6:
-        progWrite(" BACK        SO      SOON?   \n", 200)
-        case 7:
-        progWrite(" GREED       LOSS    DEATH   \n", 200)
-        case 8:
-        progWrite(" HOUSE       ALWAYS  WINS    \n", 200)
-        case 9:
-        progWrite(" GREAT       DEBT    AWAITS  \n", 200)
-        case 10:
-        progWrite(" TO  YOUR    GRAVE!  \n", 200)
-        }
-        //fmt.Print(Reset) //reset terminal color
-        color(Reset)
+        introText()
         progWrite("--------------^------------------------------------------------\n", 25)
-        fmt.Print("      / \\", "\n") // two backslashes to show it's not an operator
+        fmt.Print("          / \\", "\n") // two backslashes to show it's not an operator
         fmt.Print("Cash: ", cash)
         lines += 4
         funcBet()
@@ -148,31 +130,37 @@ func funcBet() {
    if (ach69 == false) {
     achWrite(BMagenta, "Hehehehehee...", 1000, 100)
     ach69 = true
+    achievements++
     }
   case 404:
    if (ach404 == false) {
     achWrite(Cyan, "Bet not found...", 1000, 50)
     ach404 = true
+    achievements++
     }
   case 420:
    if (ach420 == false) {
     achWrite(Green, "Green like that", 1000, 70)
     ach420 = true
+    achievements++
     }
   case 808:
    if (ach808 == false) {
     achWrite(BYellow, "Drum Machine", 808, 80)
     ach808 = true
+    achievements++
     }
   case 1337:
    if (ach1337 == false) {
     achWrite(BGreen, "Gamer!", 1500, 50)
     ach1337 = true
+    achievements++
     }
  }
  if (bet == cash && cash >= 10000) { //Taunt player for betting everything
   rc := rand.Intn(6) // rc (random case)
-  color(BBlue)
+  //color(BBlue)
+  color(BRed)
   switch rc {
    case 0:
    tauntWrite("You might regret that...", 50, 500)
@@ -183,11 +171,20 @@ func funcBet() {
    case 3:
    tauntWrite("Bad idea...", 50, 500)
    case 4:
-   tauntWrite("Greed...", 50, 500)
+   tauntWrite("No going back...", 50, 500)
    case 5:
    tauntWrite("Is that wise?", 50, 500)
   }
   color(Reset)
+ }
+ if (bet <= 0 && bets == 0) { // congradulate dudes for not gambling
+  color(BCyan)
+  progWrite("You'll never lose", 50)
+  wait(1000)
+  progWrite(" if you don't play.", 50)
+  wait(2000)
+  color(Reset)
+  quit()
  }
  if (bet <= 0) { // Quit sequence
   color(BGreen)
@@ -199,6 +196,14 @@ func funcBet() {
   wait(1000)
   fmt.Println("Highest score ",BGreen,"$",score, Reset)
   wait(1000)
+  if (achievements > 0) { // print achievement count.
+   color(BMagenta)
+   fmt.Print("Achievements    ")
+   wait(700)
+   fmt.Print(achievements)
+   wait(1000)
+   fmt.Print(Reset, "\n")
+  }
   fmt.Println("Bet count      ",bets)
   wait(1000)
   fmt.Println("Win/loss       ",wins,"/",losses)
@@ -208,7 +213,7 @@ func funcBet() {
   color(Reset)
   wait(1000)
   fmt.Print("\n")
-  os.Exit(0)
+  quit()
  }
  bets++
  clean(2) // wipe balance and be lines
@@ -259,7 +264,20 @@ func funcRoll(bet int) {
   slicePrint(arrSlice)
   moveDown(2)
   //fmt.Println("--------------^------------------------------------------------")
-  fmt.Println("      / \\  ", (frames+1), "/", frameMax, "   ") // spaces at the end to wipe remains
+  switch tickerMode {
+  case "Default":
+  fmt.Print("        / \\  ", (frames+1), "/", frameMax, "   \n")
+  case "Perception":
+  if frames == 207 {
+   perceptive = arrSlice[63]
+  }
+  if frames < 207 {
+   perceptive = 0
+  }
+  fmt.Print("        /");fmt.Printf("%s%d%s", colorMap[perceptive], perceptive, Reset); fmt.Print("\\ ",(frames+1), "/", frameMax, "   \n")
+  case "Ticker":
+           fmt.Print("       /");singleSlice(arrSlice,15);fmt.Print("\\  ", (frames+1), "/", frameMax, "   \n")
+  }
   time.Sleep(time.Duration(rate) * time.Millisecond)
   if (frames > frameMax/2) {
    rate = rate + 1
@@ -269,9 +287,16 @@ func funcRoll(bet int) {
   }
  }
  if (jammed == true) {
-  progWrite("JAMMED!", 50)
-  time.Sleep(1 * time.Second)
-  progDel(last, 50)
+  //progWrite("JAMMED!", 50) //old code
+  //time.Sleep(1 * time.Second)
+  //progDel(last, 50)
+  //jammed = false
+    if (arrSlice[15] > 0) { //flashing colors if you won
+     flickerLine("JAMMED!", 80, BYellow, BGreen, 10, 1000)
+    }
+    if (arrSlice[15] == 0) {
+     flickerLine("JAMMED!", 80, Red, BRed, 10, 1000)
+    }
   jammed = false
  }
  if (arrSlice[15] > 0) {
@@ -340,12 +365,15 @@ func funcRoll(bet int) {
  }
  if (cash <= 0 && bets == 1 ) { // lost after one bet
   fmt.Print("\n", Red)
+  wait(1500)
+  progWrite("Buddy. ", 50)
+  wait(700)
+  progWrite("Yer shockin'", 50)
   wait(1000)
-  progWrite("Buddy, yer shockin'", 50)
   fmt.Print("\n", Reset)
   os.Exit(0)
   }
- if (cash <= 0 && score == 100 && bets > 1 ) {
+ if (cash <= 0 && score == 100 && bets > 1 ) { // lost, never got over starting cash
   fmt.Print("\n", Red)
   wait(1000)
   progWrite("Walk on home, boy.", 50)
@@ -397,10 +425,50 @@ func moveDown (amt int) {
         fmt.Print("\x1b[",amt,"E")
 }
 
+func homeCursor() {
+        fmt.Print("\033[1G")
+}
+
 func wait (msec int) { //short way to execute time.Sleep in Milliseconds
         time.Sleep(time.Duration(msec) * time.Millisecond)
 }
 
+func quit() {
+        os.Exit(0)
+}
+
+func startupChecks() {
+        if (winner == true && rigged == true) {
+         write("Winner and Rigged are both true.\nDisable one and recompile")
+         quit()
+        }
+}
+func write (text string) { //do I hate writing fmt.Println()? Yes.
+        fmt.Println(text)
+}
+
+func charCount(str string) int {
+        return len(str)
+}
+
+func flickerLine(text string, speed int, color1 string, color2 string, times int, displayTime int) {
+// text is what's written, speed is how fast it flickers, color 1 and 2 will alternate, times is how many flickers
+        for i := 0; i <= times ; i++ {
+         homeCursor() // make sure she's home
+         color(color1) //set text to color 1
+         fmt.Print(text) // write it out
+         wait(speed) // wait a bit
+         homeCursor() // back to the start of the line
+         color(color2) // change color
+         fmt.Print(text) //reprint text in new color
+         wait(speed) // wait some more
+        }
+    wait(displayTime) // how long the message stays on the last color
+    letters :=  charCount(text) // get letters amount from the input string
+    progDel(letters, 50) // remove them at usual speed
+    color(Reset) // reset color
+    //done
+}
 
 func achWrite (colour string, achievement string, stop int, speed int) {
 //Structured as color you want,  achievement text, pause time, speet it's written
@@ -414,8 +482,45 @@ func achWrite (colour string, achievement string, stop int, speed int) {
         color(Reset)// not needed, good to have
 }
 
+func singleSlice (slice []int, pos int) { //name the slice, name the position
+        fmt.Printf("%s%d%s", colorMap[slice[pos]], slice[pos], Reset)
+}
+
 func slicePrint (slice []int) { //prints a slice without commas, spaces or []
      for i := 1; i < len(slice); i++ {
         fmt.Printf("%s%d%s", colorMap[slice[i]], slice[i], Reset)
     }
+}
+
+func tickerPrint (mode string) {
+
+}
+func introText() {
+        sw := rand.Intn(11) // RNG to pick a quote. Value stored in "sw" variable
+        color(BRed)
+        switch sw {
+        case 0:
+        progWrite("     BET     YOUR    MAX     \n", 200)
+        case 1:
+        progWrite("     DO      YOUR    WORST   \n", 200)
+        case 2:
+        progWrite("     TIME    HEALS   NOTHING \n", 200)
+        case 3:
+        progWrite("     IT'S    ALL     OVER    \n", 200)
+        case 4:
+        progWrite("     MONEY   FOR     NOTHING \n", 200)
+        case 5:
+        progWrite("     WHO     LAUGHS  LAST?   \n", 200)
+        case 6:
+        progWrite("     BACK    SO      SOON?   \n", 200)
+        case 7:
+        progWrite("     GREED   LOSS    DEATH   \n", 200)
+        case 8:
+        progWrite("     HOUSE   ALWAYS  WINS    \n", 200)
+        case 9:
+        progWrite("     GREAT   DEBT    AWAITS  \n", 200)
+        case 10:
+        progWrite("     TO      YOUR    GRAVE!  \n", 200)
+        }
+        color(Reset)
 }
