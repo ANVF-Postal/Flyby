@@ -33,7 +33,7 @@ var (
  rigged  = false // ALWAYS lose, right next to a  9
  winner  = false // ALWAYS roll 9
 //strings
- tickerMode = "Perception"
+ tickerMode = "None" //Option for how the ticker behaves. Options are None, Perception and Ticker
 //arrays
  arrSlice = make([]int, arrSize) // Where the rolling numbers are stored
 //ANSI colors set to strings. Print any of these strings to color the terminal
@@ -158,24 +158,7 @@ func funcBet() {
     }
  }
  if (bet == cash && cash >= 10000) { //Taunt player for betting everything
-  rc := rand.Intn(6) // rc (random case)
-  //color(BBlue)
-  color(BRed)
-  switch rc {
-   case 0:
-   tauntWrite("You might regret that...", 50, 500)
-   case 1:
-   tauntWrite("All in?", 50, 500)
-   case 2:
-   tauntWrite("Are you sure?", 50, 500)
-   case 3:
-   tauntWrite("Bad idea...", 50, 500)
-   case 4:
-   tauntWrite("No going back...", 50, 500)
-   case 5:
-   tauntWrite("Is that wise?", 50, 500)
-  }
-  color(Reset)
+   msgAllIn()
  }
  if (bet <= 0 && bets == 0) { // congradulate dudes for not gambling
   color(BCyan)
@@ -221,7 +204,6 @@ func funcBet() {
 }
 
 func funcRoll(bet int) {
- //clean(5)
  moveUp(3)
  rate = 10 // old value: 8
  frameMax := 256
@@ -248,7 +230,7 @@ func funcRoll(bet int) {
    if (rng >= 90 && rng < 95) { result = 7; }
    if (rng >= 95 && rng < 99) { result = 8; }
    if (rng >= 99) { result = 9; }
-  //rigging. DISABLED IF GLOBAL BOOLS "winner" or "rigged" are distabled!
+  //Rigging. DISABLED IF GLOBAL BOOLS "winner" or "rigged" are distabled!
   if (rigged == true && winner == false && frames == 207) { // rigged, place 0
    result = 0
   }
@@ -263,9 +245,9 @@ func funcRoll(bet int) {
   arrSlice = arrSlice[1:] //remove first element
   slicePrint(arrSlice)
   moveDown(2)
-  //fmt.Println("--------------^------------------------------------------------")
+  //Ticker line switch
   switch tickerMode {
-  case "Default":
+  case "None":
   fmt.Print("        / \\  ", (frames+1), "/", frameMax, "   \n")
   case "Perception":
   if frames == 207 {
@@ -274,10 +256,11 @@ func funcRoll(bet int) {
   if frames < 207 {
    perceptive = 0
   }
-  fmt.Print("        /");fmt.Printf("%s%d%s", colorMap[perceptive], perceptive, Reset); fmt.Print("\\ ",(frames+1), "/", frameMax, "   \n")
+  fmt.Print("        /");fmt.Printf("%s%d%s", colorMap[perceptive], perceptive, Reset); fmt.Print("\\ ",(frames+1), "/", frameMax, "   \n") // this line kills me
   case "Ticker":
-           fmt.Print("       /");singleSlice(arrSlice,15);fmt.Print("\\  ", (frames+1), "/", frameMax, "   \n")
+   fmt.Print("       /");singleSlice(arrSlice,15);fmt.Print("\\  ", (frames+1), "/", frameMax, "   \n")
   }
+  //End ticker line switch
   time.Sleep(time.Duration(rate) * time.Millisecond)
   if (frames > frameMax/2) {
    rate = rate + 1
@@ -287,15 +270,11 @@ func funcRoll(bet int) {
   }
  }
  if (jammed == true) {
-  //progWrite("JAMMED!", 50) //old code
-  //time.Sleep(1 * time.Second)
-  //progDel(last, 50)
-  //jammed = false
     if (arrSlice[15] > 0) { //flashing colors if you won
-     flickerLine("JAMMED!", 80, BYellow, BGreen, 10, 1000)
+     flickerLine("JAMMED!", 80, BYellow, BGreen, 10, 500)
     }
     if (arrSlice[15] == 0) {
-     flickerLine("JAMMED!", 80, Red, BRed, 10, 1000)
+     flickerLine("JAMMED!", 80, Red, BRed, 10, 500)
     }
   jammed = false
  }
@@ -340,7 +319,6 @@ func funcRoll(bet int) {
    progDel(last, 10)
    celebrate1k = false
    }
-  //cash += (bet*arrSlice[15])
   fmt.Print("Cash: $", cash, BGreen, " WON! ",BYellow,"+$", bet*arrSlice[15], Reset)
   if (cash > score) {
    score = cash
@@ -492,9 +470,6 @@ func slicePrint (slice []int) { //prints a slice without commas, spaces or []
     }
 }
 
-func tickerPrint (mode string) {
-
-}
 func introText() {
         sw := rand.Intn(11) // RNG to pick a quote. Value stored in "sw" variable
         color(BRed)
@@ -523,4 +498,24 @@ func introText() {
         progWrite("     TO      YOUR    GRAVE!  \n", 200)
         }
         color(Reset)
+}
+
+func msgAllIn() {
+  rc := rand.Intn(6) // rc (random case)
+  color(BRed)
+  switch rc {
+   case 0:
+   tauntWrite("You might regret that...", 50, 500)
+   case 1:
+   tauntWrite("All in?", 50, 500)
+   case 2:
+   tauntWrite("Are you sure?", 50, 500)
+   case 3:
+   tauntWrite("Bad idea...", 50, 500)
+   case 4:
+   tauntWrite("No going back...", 50, 500)
+   case 5:
+   tauntWrite("Is that wise?", 50, 500)
+  }
+  color(Reset)
 }
