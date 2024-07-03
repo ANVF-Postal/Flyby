@@ -1,6 +1,6 @@
 package main
 
-import ("fmt"; "time"; "math/rand"; "os")
+import ("fmt"; "time"; "math/rand"; "os"; "os/exec"; "syscall"; "unsafe"; "strconv"; "unicode"; "strings"; "bufio")
 //need to add a hellcase mode
 var (
 //ints
@@ -35,8 +35,12 @@ var (
 //strings
  tickerMode = "None" //Option for how the ticker behaves. Options are None, Perception and Ticker
  gameMode   = "Sandbox" // Sandbox, Hellcase, Challenge
+ entry      = "" // variable for user input. Gets checked, then converted to an int.
 //arrays
  arrSlice = make([]int, arrSize) // Where the rolling numbers are stored
+
+//reader?
+reader = bufio.NewReader(os.Stdin)
 //ANSI colors set to strings. Print any of these strings to color the terminal
     Reset   = "\033[0m" //sets color to default again.
     Red     = "\033[31m"
@@ -102,6 +106,7 @@ func main() {
         //begin startup checks
         startupChecks()
         //end startup checks
+        setRawMode() // disable keyboard inputs it seems
         cash = 100
         score = cash
         winStreak = 0
@@ -115,12 +120,53 @@ func main() {
         fmt.Print("Cash: ", cash)
         lines += 4
         funcBet()
-        }
+   }
 
 func funcBet() {
  fmt.Print("\n") // balance is printed in this new line
  fmt.Print("Place your bet: "); lines += 1
- fmt.Scan(&bet)
+ resetMode()// allow keyboard input.
+ //fmt.Scan(&entry) // this is old and doesn't work the best.
+ entry, _ := reader.ReadString('\n')
+ lcentry := strings.ToLower(strings.TrimSpace(entry)) //might add strings.ReplaceAll(entry, " ", "")
+ //process as string first
+ weedAction := []string{"weed", "ganja", "herbis", "smoke blunt", "toke up", "smoke weed", "roll joint"}
+ if contains(weedAction, lcentry) {
+  Reset = Green
+  color(Reset)
+  clean(2)
+  redraw()
+  fmt.Print("*Puff* Bro, you got like... $", cash, "... man...")
+  funcBet()
+ }
+ drunkAction := []string{"drink", "beer", "liquor", "whiskey", "get drunk", "shots", "take a shot", "get loaded"}
+ if contains(drunkAction, lcentry) {
+  Reset = Yellow
+  color(Reset)
+  clean(2)
+  redraw()
+  fmt.Print("*Hiccup* Byyysss gots me... *hiccup* 'bout... $", cash)
+  funcBet()
+ }
+ soberAction := []string{"rehab", "sober", "hospital", "sober up", "i have a problem"}
+ if contains(soberAction, lcentry) {
+  Reset   = "\033[0m"
+  color(Reset)
+  clean(2)
+  redraw()
+  fmt.Print("The nurse at rehab said: You have $", cash,"!")
+  funcBet()
+ }
+ // now actually convert
+ filteredInput := filterDigits(entry)
+ bet, err := strconv.Atoi(filteredInput) //convert string to int, assign to bet variable
+ // handle error
+    if err != nil {
+        clean(2)
+        fmt.Print("You ok, man? That didn't make sense. You got $", cash)
+        funcBet()
+    }
+ // post int conversion
  if (bet > cash){
   clean(2)
   fmt.Print("Not enough cash. You have $", cash)
@@ -201,6 +247,7 @@ func funcBet() {
  }
  bets++
  clean(2) // wipe balance and bet lines
+ setRawMode() // disable keyboard input
  funcRoll(bet)
 }
 
@@ -418,6 +465,7 @@ func wait (msec int) { //short way to execute time.Sleep in Milliseconds
 }
 
 func quit() {
+        resetMode()
         os.Exit(0)
 }
 
@@ -433,6 +481,15 @@ func write (text string) { //do I hate writing fmt.Println()? Yes.
 
 func charCount(str string) int {
         return len(str)
+}
+
+func contains(slice []string, item string) bool { //check if entry is equal to an array element
+    for _, v := range slice {
+        if strings.EqualFold(v, item) {
+            return true
+        }
+    }
+    return false
 }
 
 func flickerLine(text string, speed int, color1 string, color2 string, times int, displayTime int) {
@@ -479,6 +536,47 @@ func slicePrint (slice []int) { //prints a slice without commas, spaces or []
         fmt.Printf("%s%d%s", colorMap[slice[i]], slice[i], Reset)
     }
 }
+
+func setRawMode() { //thanks copilot
+    termios := &syscall.Termios{}
+    syscall.Syscall6(syscall.SYS_IOCTL, uintptr(syscall.Stdin), uintptr(syscall.TCGETS), uintptr(unsafe.Pointer(termios)), 0, 0, 0)
+    termios.Lflag &^= syscall.ICANON | syscall.ECHO
+    syscall.Syscall6(syscall.SYS_IOCTL, uintptr(syscall.Stdin), uintptr(syscall.TCSETS), uintptr(unsafe.Pointer(termios)), 0, 0, 0)
+}
+
+func resetMode() {  // thanks copilot
+    cmd := exec.Command("stty", "-F", "/dev/tty", "sane")
+    cmd.Stdout = os.Stdout
+    cmd.Run()
+}
+
+func filterDigits(input string) string { //isolate numbrs from strings
+    result := ""
+    for _, char := range input {
+        if unicode.IsDigit(char) {
+            result += string(char)
+        }
+    }
+    return result
+}
+
+func removeSpaces(input string) string { //unused, maybe useful
+    var result strings.Builder
+    for _, char := range input {
+        if !unicode.IsSpace(char) {
+            result.WriteRune(char)
+        }
+    }
+    return result.String()
+}
+
+func redraw(){ //redraws machine.
+        moveUp(4)
+        fmt.Print("---FLYBY------V------------------------------------------------\n")
+        moveDown(1)
+        fmt.Print("--------------^------------------------------------------------\n")
+        fmt.Print("          / \\          \n")
+        }
 
 func introText() {
         sw := rand.Intn(11) // RNG to pick a quote. Value stored in "sw" variable
