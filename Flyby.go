@@ -1,7 +1,7 @@
 package main
 
 import ("fmt"; "time"; "math/rand"; "os")
-
+//need to add a hellcase mode
 var (
 //ints
  lines int // Tracks how many terminal lines are written
@@ -34,6 +34,7 @@ var (
  winner  = false // ALWAYS roll 9
 //strings
  tickerMode = "None" //Option for how the ticker behaves. Options are None, Perception and Ticker
+ gameMode   = "Sandbox" // Sandbox, Hellcase, Challenge
 //arrays
  arrSlice = make([]int, arrSize) // Where the rolling numbers are stored
 //ANSI colors set to strings. Print any of these strings to color the terminal
@@ -199,7 +200,7 @@ func funcBet() {
   quit()
  }
  bets++
- clean(2) // wipe balance and be lines
+ clean(2) // wipe balance and bet lines
  funcRoll(bet)
 }
 
@@ -219,7 +220,7 @@ func funcRoll(bet int) {
  }
  var result int // set from 0 - 9 depending on number from RNG
  for frames := 0; frames < jam; frames++ { // set jam to frameMax if it breaks!
-  rand.Seed(time.Now().UnixNano())
+  rand.Seed(time.Now().UnixNano()) //not actually needed it seems
   rng := rand.Intn(100)
    if (rng <= 60) { result = 0; } // winning / odds table
    if (rng >= 61 && rng < 70) { result = 2; }
@@ -285,9 +286,9 @@ func funcRoll(bet int) {
   //Celebration messages
    if (arrSlice[15] == 9) { // Celebrate hitting a 9
    color(BYellow)
-   progWrite("INCREDIBLE 9x WIN!", 50)
+   progWrite("GOLDEN 9x WIN!", 50)
    color(Reset)
-   wait(500)
+   wait(800)
    progDel(last, 10)
    }
    if (cash >= 1000000 && celebrateMil == true) { // Celebrate hitting 1 mil
@@ -334,7 +335,6 @@ func funcRoll(bet int) {
      progWrite(" NEW HIGHSCORE!", 50)
     }
   }
-
  } else { // lose - array hit zero
   cash = cash - bet
   losses++
@@ -355,6 +355,7 @@ func funcRoll(bet int) {
   fmt.Print("\n", Red)
   wait(1000)
   progWrite("Walk on home, boy.", 50)
+  wait(1000)
   fmt.Print("\n", Reset)
   os.Exit(0)
  }
@@ -377,6 +378,11 @@ func funcRoll(bet int) {
   wait(1000)
   fmt.Print(bets,"\n")
   wait(1000)
+  if (score > 32000) { // Make fun of the player for losing hard
+   msgTotalLoser()
+   wait(1000)
+   fmt.Print("\n")
+   }
   os.Exit(0)
  }
  funcBet()
@@ -464,6 +470,10 @@ func singleSlice (slice []int, pos int) { //name the slice, name the position
         fmt.Printf("%s%d%s", colorMap[slice[pos]], slice[pos], Reset)
 }
 
+func seedRNG() {
+        rand.Seed(time.Now().UnixNano())
+}
+
 func slicePrint (slice []int) { //prints a slice without commas, spaces or []
      for i := 1; i < len(slice); i++ {
         fmt.Printf("%s%d%s", colorMap[slice[i]], slice[i], Reset)
@@ -498,6 +508,41 @@ func introText() {
         progWrite("     TO      YOUR    GRAVE!  \n", 200)
         }
         color(Reset)
+}
+
+func msgTotalLoser() {
+   rc := rand.Intn(6)
+   color(BRed)
+   switch rc {
+    case 0:
+    progWrite("Go on, ", 50); wait(500); progWrite("blame the system, ", 50); wait(500); progWrite("whatever.", 50)
+    case 1:
+    progWrite("Buddy Youngster's pizza delivery", 50)
+    case 2:
+    progWrite("Lmao.", 200)
+    case 3:
+    progWrite("You had it all, buddy", 50)
+    case 4:
+    progWrite("House wins. ", 50); wait(800); progWrite("Again.", 50)
+    case 5: // subject status
+    seedRNG()
+    rep :=  rand.Intn(5)
+    progWrite("SUBJECT REPORT: ", 50)
+    wait(800)
+     switch rep {
+     case 0:
+     progWrite("Needs job.", 50)
+     case 1:
+     progWrite("Outplayed.", 50)
+     case 2:
+     progWrite("Bad with money.", 50)
+     case 3:
+     progWrite("Don't play what you can't win", 50)
+     case 4:
+     progWrite("Therapy suggested.", 50)
+     }
+   }
+   color(Reset)
 }
 
 func msgAllIn() {
