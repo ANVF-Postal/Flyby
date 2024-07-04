@@ -16,9 +16,13 @@ var (
  rate int // Animation roll delay in miliseconds
  arrSize = 64 // Number of cells in the rolling array
  winStreak int // Count how many wins in a row
- jam int
- achievements int
- perceptive int
+ jam int // number to jam the machine on
+ achievements int // how many achievements you have
+ perceptive int // The number forseen by the "Perception" ticker mode
+ startingCash = 100 // How much the player starts with
+ rehabVisits int // Count rehab visits
+ beers int  // Count how many beers you drank
+ weeds int  // Count how many joints were smoked
 //bools
  celebrateMil = true // Celebrate breaking over one million
  celebrate1k  = true // Celebrate breaking a thousand
@@ -31,7 +35,10 @@ var (
  jamming = true //Enable or disable jamming
  jammed  = false // This is set if the machine jams
  rigged  = false // ALWAYS lose, right next to a  9
- winner  = false // ALWAYS roll 9
+ winner  = true // ALWAYS roll 9
+ bartenderDead  = false
+ drugdealerDead = false
+ ownerDead      = false
 //strings
  tickerMode = "None" //Option for how the ticker behaves. Options are None, Perception and Ticker
  gameMode   = "Sandbox" // Sandbox, Hellcase, Challenge
@@ -106,11 +113,11 @@ func main() {
         //begin startup checks
         startupChecks()
         //end startup checks
-        setRawMode() // disable keyboard inputs it seems
-        cash = 100
+        setRawMode() // disable keyboard inputs
+        cash = startingCash
         score = cash
-        winStreak = 0
-        //Reset = Green // weed mode
+        rehabVisits = 0
+        winStreak = 0 // could move this to a "resetParams" function
         color(Reset)
         rand.Seed(time.Now().UnixNano())
         progWrite("---FLYBY------V------------------------------------------------\n", 50)
@@ -129,25 +136,62 @@ func funcBet() {
  //fmt.Scan(&entry) // this is old and doesn't work the best.
  entry, _ := reader.ReadString('\n')
  lcentry := strings.ToLower(strings.TrimSpace(entry)) //might add strings.ReplaceAll(entry, " ", "")
+ setRawMode()// go back to disabled inputs
  //process as string first
+ quitAction := []string{"quit", "leave", "walk away", "exit"}
+ if contains(quitAction, lcentry) {
+   if (cash < startingCash) { // if you're below 100 bucks
+    write("\n")
+    color(BRed)
+    progWrite("Yeah yeah, ", 50); wait(500); progWrite("just get out of here...", 50)
+    wait(1000)
+    write("\n")
+    quit()
+   }
+   if (cash == startingCash && bets == 0) { //if you never bet
+    neverGamble()
+   }
+  quitSeq() //if you left on good terms
+ }
+ //smoke weed
  weedAction := []string{"weed", "ganja", "herbis", "smoke blunt", "toke up", "smoke weed", "roll joint"}
  if contains(weedAction, lcentry) {
-  Reset = Green
-  color(Reset)
+  if (drugdealerDead == false) {
+   Reset = Green
+   color(Reset)
+   clean(2)
+   redraw()
+   fmt.Print("*Puff* Bro, you got like... $", cash, "... man...")
+   weeds++
+   funcBet()
+   }
   clean(2)
-  redraw()
-  fmt.Print("*Puff* Bro, you got like... $", cash, "... man...")
+  progWrite("The dealer is dead. ", 50); wait(500); progWrite("No more drugs. ", 50)
+  wait(1000)
+  //fmt.Print("Cash: $", cash)
+  writeCash()
   funcBet()
  }
+ //get drunk
  drunkAction := []string{"drink", "beer", "liquor", "whiskey", "get drunk", "shots", "take a shot", "get loaded"}
  if contains(drunkAction, lcentry) {
-  Reset = Yellow
-  color(Reset)
-  clean(2)
-  redraw()
-  fmt.Print("*Hiccup* Byyysss gots me... *hiccup* 'bout... $", cash)
-  funcBet()
+  if (bartenderDead == false) {
+   Reset = Yellow
+   color(Reset)
+   clean(2)
+   redraw()
+   fmt.Print("*Hiccup* Byyysss gots me... *hiccup* 'bout... $", cash)
+   beers++
+   funcBet()
+   }
+   clean(2)
+   progWrite("The bartender is dead. ", 50); wait(500); progWrite("No more drinks. ", 50)
+   wait(1000)
+   //fmt.Print("Cash: $", cash)
+   writeCash()
+   funcBet()
  }
+ //get sober
  soberAction := []string{"rehab", "sober", "hospital", "sober up", "i have a problem"}
  if contains(soberAction, lcentry) {
   Reset   = "\033[0m"
@@ -155,6 +199,74 @@ func funcBet() {
   clean(2)
   redraw()
   fmt.Print("The nurse at rehab said: You have $", cash,"!")
+  rehabVisits++
+  funcBet()
+ }
+ // Kill bartender
+ if (lcentry == "kill bartender" || lcentry == "shoot bartender" || lcentry == "slay bartender") {
+  if (bartenderDead == false) {
+   clean(2)
+   color(Yellow)
+   progWrite("You pull out your .38 special and shoot the bartender", 50)
+   wait(800)
+   progWrite("\nHe cries out: ", 25); wait(500); progWrite("Mother Mary!", 25)
+   wait(1000)
+   homeCursor()// i have no idea why this is so fucked.
+   clean(1)
+   color(Reset)
+   bartenderDead=true
+   fmt.Print("Cash: $", cash)
+   funcBet()
+   }
+  color(Yellow)
+  progWrite("Bartender is already dead...", 25)
+  wait(870)
+  progDel(last, 10)
+  color(Reset)
+  clean(2)
+  //fmt.Print("Cash: $", cash)
+  writeCash()
+  funcBet()
+ }
+ //Kill drug dealer
+ killDruggieAction := []string{"kill druggie", "kill drug dealer", "shoot druggie", "shoot drug dealer", "slay dealer"}
+ if contains(killDruggieAction, lcentry) {
+ if (drugdealerDead == false) {
+   clean(2)
+   color(Green)
+   progWrite("You walk over with your .38 special and shoot the drug dealer", 50)
+   wait(800)
+   progWrite("\nHe cries out: ", 25); wait(500); progWrite("Holy fuck, bah!", 25)
+   wait(1000)
+   homeCursor()// i have no idea why this is so fucked.
+   clean(1)
+   color(Reset)
+   drugdealerDead=true
+   fmt.Print("Cash: $", cash)
+   funcBet()
+   }
+  color(Green)
+  progWrite("The drug dealer is already dead...", 25)
+  wait(870)
+  progDel(last, 10)
+  color(Reset)
+  clean(2)
+  //fmt.Print("Cash: $", cash)
+  writeCash()
+  funcBet()
+
+ }
+ killSelfAction := []string{"suicide", "kill self", "end life", "commit suicide", "shoot self", "blow brains out"}
+ if contains(killSelfAction, lcentry) {
+  killSelf()
+ }
+ if (lcentry == "restart") {
+  restart()
+ }
+ if (lcentry == "redraw") {
+  clean(2)
+  redraw()
+  writeCash()
   funcBet()
  }
  // now actually convert
@@ -208,42 +320,10 @@ func funcBet() {
    msgAllIn()
  }
  if (bet <= 0 && bets == 0) { // congradulate dudes for not gambling
-  color(BCyan)
-  progWrite("You'll never lose", 50)
-  wait(1000)
-  progWrite(" if you don't play.", 50)
-  wait(2000)
-  color(Reset)
-  quit()
+  neverGamble()
  }
  if (bet <= 0) { // Quit sequence
-  color(BGreen)
-  progWrite("You decided to quit!", 50)
-  wait(2000)
-  fmt.Println(BYellow,"\n--------------------------------------", Reset)
-  wait(1000)
-  fmt.Println("Final balance ",BYellow, "$",cash, Reset)
-  wait(1000)
-  fmt.Println("Highest score ",BGreen,"$",score, Reset)
-  wait(1000)
-  if (achievements > 0) { // print achievement count.
-   color(BMagenta)
-   fmt.Print("Achievements    ")
-   wait(700)
-   fmt.Print(achievements)
-   wait(1000)
-   fmt.Print(Reset, "\n")
-  }
-  fmt.Println("Bet count      ",bets)
-  wait(1000)
-  fmt.Println("Win/loss       ",wins,"/",losses)
-  wait(2000)
-  color(BCyan)
-  progWrite("Thank you for playing!",50)
-  color(Reset)
-  wait(1000)
-  fmt.Print("\n")
-  quit()
+  quitSeq()
  }
  bets++
  clean(2) // wipe balance and bet lines
@@ -396,7 +476,7 @@ func funcRoll(bet int) {
   progWrite("Yer shockin'", 50)
   wait(1000)
   fmt.Print("\n", Reset)
-  os.Exit(0)
+  quit()
   }
  if (cash <= 0 && score == 100 && bets > 1 ) { // lost, never got over starting cash
   fmt.Print("\n", Red)
@@ -404,7 +484,7 @@ func funcRoll(bet int) {
   progWrite("Walk on home, boy.", 50)
   wait(1000)
   fmt.Print("\n", Reset)
-  os.Exit(0)
+  quit()
  }
  if (cash <= 0) { //lose sequence
   wait(1500) // suspense delay, lol
@@ -430,7 +510,7 @@ func funcRoll(bet int) {
    wait(1000)
    fmt.Print("\n")
    }
-  os.Exit(0)
+  quit()
  }
  funcBet()
 
@@ -475,8 +555,31 @@ func startupChecks() {
          quit()
         }
 }
+
+func restart() { // restart the game
+        clean(6)
+        Reset = "\033[0m"
+        achievements = 0
+        celebrateMil = true // Celebrate breaking over one million
+        celebrate1k  = true // Celebrate breaking a thousand
+        celebrate1hk = true // Celebrate breaking a hundred thousand
+        ach69   = false // has the player gotten acheivements for 69, 404, etc
+        ach404  = false
+        ach420  = false
+        ach808  = false
+        ach1337 = false
+        drugdealerDead = false
+        bartenderDead  = false
+        main()
+
+}
+
 func write (text string) { //do I hate writing fmt.Println()? Yes.
         fmt.Println(text)
+}
+
+func writeCash() {
+        fmt.Print("Cash: $", cash)
 }
 
 func charCount(str string) int {
@@ -568,6 +671,126 @@ func removeSpaces(input string) string { //unused, maybe useful
         }
     }
     return result.String()
+}
+
+func quitSeq() {
+  color(BGreen)
+  progWrite("You decided to quit!", 50)
+  wait(2000)
+  fmt.Println(BYellow,"\n--------------------------------------", Reset)
+  wait(1000)
+  fmt.Println("Final balance ",BYellow, "$",cash, Reset)
+  wait(1000)
+  fmt.Println("Highest score ",BGreen,"$",score, Reset)
+  wait(1000)
+  if (achievements > 0) { // print achievement count.
+   color(BMagenta)
+   fmt.Print("Achievements    ")
+   wait(700)
+   fmt.Print(achievements)
+   wait(1000)
+   fmt.Print(Reset, "\n")
+  }
+  if (beers > 0) {
+   color(Yellow)
+   fmt.Print("Beers Drank     ")
+   wait(500)
+   color(BRed)
+   fmt.Print(beers)
+   wait(1000)
+   fmt.Print(Reset, "\n")
+  }
+  if (weeds > 0)  {
+   color(Green)
+   fmt.Print("Weeds smoked    ")
+   wait(500)
+   color(BRed)
+   fmt.Print(weeds)
+   wait(1000)
+   fmt.Print(Reset, "\n")
+  }
+  if (rehabVisits > 0) {
+   color(Cyan)
+   fmt.Print("Rehab visits    ")
+   wait(700)
+   fmt.Print(rehabVisits)
+   wait(1000)
+   fmt.Print(Reset, "\n")
+  }
+  if (bartenderDead == true) {
+   color(Yellow)
+   fmt.Print("Bartender       ")
+   wait(700)
+   color(BRed)
+   fmt.Print("DEAD!")
+   wait(1000)
+   fmt.Print(Reset, "\n")
+  }
+  if (drugdealerDead == true) {
+   color(Green)
+   fmt.Print("Drug dealer     ")
+   wait(700)
+   color(BRed)
+   fmt.Print("DEAD!")
+   wait(1000)
+   fmt.Print(Reset, "\n")
+  }
+  fmt.Println("Bet count      ",bets)
+  wait(1000)
+  fmt.Println("Win/loss       ",wins,"/",losses)
+  wait(2000)
+  color(BCyan)
+  progWrite("Thank you for playing!",50)
+  color(Reset)
+  wait(1000)
+  fmt.Print("\n")
+  quit()
+}
+
+func killSelf() {
+  write("\n")
+  color(Reset)
+  progWrite("You splatter your brains all over the casino. ", 50)
+  wait(1000)
+  progWrite("\nThe room goes silent. ", 50)
+  wait(1000)
+  progWrite("\nHorrified onlookers gasp at the sight of your corpse. ", 50)
+  wait(1000)
+  if (bartenderDead == false) {
+   progWrite("\nThe bartender walks over and says: ", 50); wait(1500)
+   color(Yellow)
+   progWrite("Go way witcha'", 50); wait(3000)
+   color(BBlue)
+   progWrite("\nThank you for playing.", 50)
+   wait(1000)
+   write("\n")
+   quit()
+  }
+  if (drugdealerDead == false && weeds > 0) {
+   progWrite("\nThe drug dealer walks over and says: ", 50); wait(1500)
+   color(Green)
+   progWrite("I'm fokn' deadly sorry, bah...", 50); wait(3000)
+   color(BBlue)
+   progWrite("\nThank you for playing.", 50)
+   wait(1000)
+   write("\n")
+   quit()
+  }
+  wait(2000)
+  progWrite("\nThank you for playing.", 50)
+  wait(1000)
+  write("\n")
+  quit()
+}
+
+func neverGamble() {
+  color(BCyan)
+  progWrite("You'll never lose", 50)
+  wait(1000)
+  progWrite(" if you don't play.", 50)
+  wait(2000)
+  color(Reset)
+  quit()
 }
 
 func redraw(){ //redraws machine.
