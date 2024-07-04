@@ -35,7 +35,7 @@ var (
  jamming = true //Enable or disable jamming
  jammed  = false // This is set if the machine jams
  rigged  = false // ALWAYS lose, right next to a  9
- winner  = true // ALWAYS roll 9
+ winner  = false // ALWAYS roll 9
  bartenderDead  = false
  drugdealerDead = false
  ownerDead      = false
