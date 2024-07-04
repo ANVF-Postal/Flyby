@@ -48,6 +48,8 @@ Yes, the offical way to WIN is to BET ZERO, causing the game to quit. After that
 
 -Anti-gambling sentiment
 
+-Weed and beer
+
 -Dumb achievements
 
 -JAMMING
