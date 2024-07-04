@@ -139,7 +139,7 @@ func funcBet() {
  lcentry := strings.ToLower(strings.TrimSpace(entry)) //might add strings.ReplaceAll(entry, " ", "")
  setRawMode()// go back to disabled inputs
  //process as string first
- quitAction := []string{"quit", "leave", "walk away", "exit"}
+ quitAction := []string{"quit", "leave", "walk away", "exit", "win"}
  if contains(quitAction, lcentry) {
    if (cash < startingCash) { // if you're below 100 bucks
     write("\n")
@@ -290,6 +290,17 @@ func funcBet() {
    writeCash()
    funcBet()
   }
+ }
+ betMaxAction := []string{"everything", "all in", "max", "all"}
+ if contains(betMaxAction, lcentry) {
+  bet = cash
+   if (bet >= 10000) { //Taunt player for betting everything
+   msgAllIn()
+ }// roll straight from here
+  bets++
+  clean(2) // wipe balance and bet lines
+  setRawMode() // disable keyboard input
+  funcRoll(bet)
  }
  killSelfAction := []string{"suicide", "kill self", "end life", "commit suicide", "shoot self", "blow brains out"}
  if contains(killSelfAction, lcentry) {
