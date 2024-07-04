@@ -31,7 +31,7 @@ However, every bet there is a chance the machine won't complete the full 256 fra
 
 Can you WIN Flyby?
 
-Yes, the offical way to WIN is to BET ZERO, causing the game to quit. After that your current CASH is your score, and the game will print out your run stats. HIGHSCORE means nothing if it's not the balance you left with.
+Yes, the offical way to WIN is to BET ZERO or type "quit", causing the game to exit. After that, your current CASH is your score, and the game will print out your run stats. HIGHSCORE means nothing if it's not the balance you left with.
 
 # Features
 -A 64 character long random number sequence, that determines your win
