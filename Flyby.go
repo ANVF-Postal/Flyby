@@ -42,6 +42,7 @@ var (
 //strings
  tickerMode = "None" //Option for how the ticker behaves. Options are None, Perception and Ticker
  gameMode   = "Sandbox" // Sandbox, Hellcase, Challenge
+ spinMode   = "None" // How spinning works. "Fast" and "None". "Fast" means no slowdown
  entry      = "" // variable for user input. Gets checked, then converted to an int.
 //arrays
  arrSlice = make([]int, arrSize) // Where the rolling numbers are stored
@@ -124,7 +125,7 @@ func main() {
         introText()
         progWrite("--------------^------------------------------------------------\n", 25)
         fmt.Print("          / \\", "\n") // two backslashes to show it's not an operator
-        fmt.Print("Cash: ", cash)
+        fmt.Print("Cash: $", cash)
         lines += 4
         funcBet()
    }
@@ -256,6 +257,40 @@ func funcBet() {
   funcBet()
 
  }
+ if (lcentry == "perception") { // set ticker mode
+  if (tickerMode == "Perception") {
+   clean(2)
+   tickerMode = "None"
+   fmt.Print("Perception mode: OFF ")
+   writeCash()
+   funcBet()
+  } else { // else needs to be candy-wrapper form
+   clean(2)
+   tickerMode = "Perception"
+   color(BBlue)
+   fmt.Print("Perception mode: ON ")
+   color(Reset)
+   writeCash()
+   funcBet()
+  }
+ }
+  if (lcentry == "fast") { // set fast mode
+  if (spinMode == "Fast") {
+   clean(2)
+   spinMode = "None"
+   fmt.Print("Fast spin: OFF ")
+   writeCash()
+   funcBet()
+  } else { // else needs to be candy-wrapper form
+   clean(2)
+   spinMode = "Fast"
+   color(BBlue)
+   fmt.Print("Fast spin: ON  ")
+   color(Reset)
+   writeCash()
+   funcBet()
+  }
+ }
  killSelfAction := []string{"suicide", "kill self", "end life", "commit suicide", "shoot self", "blow brains out"}
  if contains(killSelfAction, lcentry) {
   killSelf()
@@ -325,7 +360,7 @@ func funcBet() {
  if (bet <= 0) { // Quit sequence
   quitSeq()
  }
- bets++
+ bets++ // bet succeeded by this point
  clean(2) // wipe balance and bet lines
  setRawMode() // disable keyboard input
  funcRoll(bet)
@@ -390,7 +425,7 @@ func funcRoll(bet int) {
   }
   //End ticker line switch
   time.Sleep(time.Duration(rate) * time.Millisecond)
-  if (frames > frameMax/2) {
+  if (frames > frameMax/2 && spinMode == "None") { // Slowdown spinning.
    rate = rate + 1
   }
   if (frames < jam - 1) { //replace jam with frameMax if it breaks!
@@ -478,7 +513,7 @@ func funcRoll(bet int) {
   fmt.Print("\n", Reset)
   quit()
   }
- if (cash <= 0 && score == 100 && bets > 1 ) { // lost, never got over starting cash
+ if (cash <= 0 && score == startingCash && bets > 1 ) { // lost, never got over starting cash
   fmt.Print("\n", Red)
   wait(1000)
   progWrite("Walk on home, boy.", 50)
@@ -750,6 +785,8 @@ func quitSeq() {
 func killSelf() {
   write("\n")
   color(Reset)
+  write("*BOOM*\n")
+  wait(1500)
   progWrite("You splatter your brains all over the casino. ", 50)
   wait(1000)
   progWrite("\nThe room goes silent. ", 50)
