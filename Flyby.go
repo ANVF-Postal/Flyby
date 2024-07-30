@@ -23,6 +23,7 @@ var (
  rehabVisits int // Count rehab visits
  beers int  // Count how many beers you drank
  weeds int  // Count how many joints were smoked
+ intoxication int // How drunk the player is. 10 beers = 50/50 chance of death
 //bools
  celebrateMil = true // Celebrate breaking over one million
  celebrate1k  = true // Celebrate breaking a thousand
@@ -120,7 +121,7 @@ func main() {
         rehabVisits = 0
         winStreak = 0 // could move this to a "resetParams" function
         color(Reset)
-        rand.Seed(time.Now().UnixNano())
+        //rand.Seed(time.Now().UnixNano())
         progWrite("---FLYBY------V------------------------------------------------\n", 50)
         introText()
         progWrite("--------------^------------------------------------------------\n", 25)
@@ -169,7 +170,6 @@ func funcBet() {
   clean(2)
   progWrite("The dealer is dead. ", 50); wait(500); progWrite("No more drugs. ", 50)
   wait(1000)
-  //fmt.Print("Cash: $", cash)
   writeCash()
   funcBet()
  }
@@ -181,8 +181,61 @@ func funcBet() {
    color(Reset)
    clean(2)
    redraw()
+   switch intoxication {
+   case 0:
+   fmt.Print("Hey bartender! Got anything to drink? Balance $", cash)
+   case 1:
+   fmt.Print("Order up! *TSSSSSK* *Clink* *Clink*  You have $", cash)
+   case 2:
+   fmt.Print("*Bartender roll a beer to you* *TSSSK* You have $", cash)
+   case 3:
+   fmt.Print("Another one! Hit me! *TSSSSK*  balance $", cash)
+   case 4:
+   fmt.Print("Bartender! Over here! *TSSSSSSSSSK*  balance $", cash)
+   case 5:
+   fmt.Print("Hey bah, how about another round, wah?  balance $", cash)
+   case 6:
+   fmt.Print("Yoooooo... bartender! Over here...  balance $", cash)
+   case 7:
+   fmt.Print("Buddaaaaay, I needs... another...  balance $", cash)
+   case 8:
    fmt.Print("*Hiccup* Byyysss gots me... *hiccup* 'bout... $", cash)
+   case 9:
+   fmt.Print("Heyyyyy *hiccup* I... uhhh... *snort* got... $", cash)
+   case 10:
+   r := rand.Intn(2) // roll 50/50 for death
+    if (r == 1) { //survive
+     Reset   = "\033[0m"
+     color(Reset)
+     redraw()
+     progWrite("Someone notices your drunkeness and calls an ambulance", 50)
+     wait(1000)
+     progDel(last, 20)
+     fmt.Print("The nurse at rehab said: You have $", cash,"!")
+     rehabVisits++
+     intoxication = 0
+     funcBet()
+    } // die
+    progWrite("You have died of alcohol poisoning.", 50)
+    wait(1000)
+    fmt.Print("\n")
+    Reset   = "\033[0m"
+    color(Reset)
+    progWrite("Onlookers tried to call 911, but it was too late", 50)
+    wait(1000)
+    fmt.Print("\n")
+    progWrite("Highest score: $", 50)
+    wait(1000)
+    fmt.Print(cash)
+    wait(2000)
+    fmt.Print("\n")
+    color(BBlue)
+    progWrite("Thank you for playing!", 50)
+    wait(1000)
+    quit()
+   }
    beers++
+   intoxication++
    funcBet()
    }
    clean(2)
@@ -201,6 +254,7 @@ func funcBet() {
   redraw()
   fmt.Print("The nurse at rehab said: You have $", cash,"!")
   rehabVisits++
+  intoxication = 0
   funcBet()
  }
  // Kill bartender
@@ -261,16 +315,16 @@ func funcBet() {
   if (tickerMode == "Perception") {
    clean(2)
    tickerMode = "None"
-   fmt.Print("Perception mode: OFF ")
    writeCash()
+   fmt.Print(" Perception mode: OFF ")
    funcBet()
   } else { // else needs to be candy-wrapper form
    clean(2)
    tickerMode = "Perception"
-   color(BBlue)
-   fmt.Print("Perception mode: ON ")
-   color(Reset)
    writeCash()
+   color(BBlue)
+   fmt.Print(" Perception mode: ON ")
+   color(Reset)
    funcBet()
   }
  }
@@ -278,29 +332,43 @@ func funcBet() {
   if (spinMode == "Fast") {
    clean(2)
    spinMode = "None"
-   fmt.Print("Fast spin: OFF ")
    writeCash()
+   fmt.Print(" Fast spin: OFF ")
    funcBet()
   } else { // else needs to be candy-wrapper form
    clean(2)
    spinMode = "Fast"
-   color(BBlue)
-   fmt.Print("Fast spin: ON  ")
-   color(Reset)
    writeCash()
+   color(BBlue)
+   fmt.Print(" Fast spin: ON  ")
+   color(Reset)
    funcBet()
   }
  }
- betMaxAction := []string{"everything", "all in", "max", "all"}
+ betMaxAction := []string{"everything", "all in", "max", "all", "full"}
  if contains(betMaxAction, lcentry) {
   bet = cash
    if (bet >= 10000) { //Taunt player for betting everything
    msgAllIn()
- }// roll straight from here
+  }// roll straight from here
   bets++
   clean(2) // wipe balance and bet lines
   setRawMode() // disable keyboard input
   funcRoll(bet)
+ }
+ if (lcentry == "half") {
+  bet = cash / 2
+  bets++
+  clean(2)
+  setRawMode()
+  funcRoll(bet)
+ }
+ if (lcentry == "tenth") {
+ bet = cash / 10
+ bets++
+ clean(2)
+ setRawMode()
+ funcRoll(bet)
  }
  killSelfAction := []string{"suicide", "kill self", "end life", "commit suicide", "shoot self", "blow brains out"}
  if contains(killSelfAction, lcentry) {
@@ -393,7 +461,7 @@ func funcRoll(bet int) {
  }
  var result int // set from 0 - 9 depending on number from RNG
  for frames := 0; frames < jam; frames++ { // set jam to frameMax if it breaks!
-  rand.Seed(time.Now().UnixNano()) //not actually needed it seems
+  //rand.Seed(time.Now().UnixNano()) //not actually needed it seems
   rng := rand.Intn(100)
    if (rng <= 60) { result = 0; } // winning / odds table
    if (rng >= 61 && rng < 70) { result = 2; }
