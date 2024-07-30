@@ -187,7 +187,7 @@ func funcBet() {
    case 1:
    fmt.Print("Order up! *TSSSSSK* *Clink* *Clink*  You have $", cash)
    case 2:
-   fmt.Print("*Bartender roll a beer to you* *TSSSK* You have $", cash)
+   fmt.Print("*Bartender rolls a beer to you* *TSSSK* You have $", cash)
    case 3:
    fmt.Print("Another one! Hit me! *TSSSSK*  balance $", cash)
    case 4:
@@ -279,7 +279,6 @@ func funcBet() {
   progDel(last, 10)
   color(Reset)
   clean(2)
-  //fmt.Print("Cash: $", cash)
   writeCash()
   funcBet()
  }
@@ -306,7 +305,6 @@ func funcBet() {
   progDel(last, 10)
   color(Reset)
   clean(2)
-  //fmt.Print("Cash: $", cash)
   writeCash()
   funcBet()
 
