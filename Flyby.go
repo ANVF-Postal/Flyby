@@ -24,6 +24,7 @@ var (
  beers int  // Count how many beers you drank
  weeds int  // Count how many joints were smoked
  intoxication int // How drunk the player is. 10 beers = 50/50 chance of death
+ lastBet int // Store the last bet so you can bet again with "last"
 //bools
  celebrateMil = true // Celebrate breaking over one million
  celebrate1k  = true // Celebrate breaking a thousand
@@ -118,10 +119,9 @@ func main() {
         setRawMode() // disable keyboard inputs
         cash = startingCash
         score = cash
-        rehabVisits = 0
         winStreak = 0 // could move this to a "resetParams" function
         color(Reset)
-        //rand.Seed(time.Now().UnixNano())
+        seedRNG()
         progWrite("---FLYBY------V------------------------------------------------\n", 50)
         introText()
         progWrite("--------------^------------------------------------------------\n", 25)
@@ -140,10 +140,10 @@ func funcBet() {
  lcentry := strings.ToLower(strings.TrimSpace(entry)) //might add strings.ReplaceAll(entry, " ", "")
  setRawMode()// go back to disabled inputs
  //process as string first
- quitAction := []string{"quit", "leave", "walk away", "exit", "win"}
+ quitAction := []string{"quit", "leave", "walk away", "exit", "win", "close"}
  if contains(quitAction, lcentry) {
    if (cash < startingCash) { // if you're below 100 bucks
-    write("\n")
+    //write("\n") //not needed
     color(BRed)
     progWrite("Yeah yeah, ", 50); wait(500); progWrite("just get out of here...", 50)
     wait(1000)
@@ -229,7 +229,7 @@ func funcBet() {
     fmt.Print(cash)
     wait(2000)
     fmt.Print("\n")
-    color(BBlue)
+    color(BCyan)
     progWrite("Thank you for playing!", 50)
     wait(1000)
     quit()
@@ -349,24 +349,36 @@ func funcBet() {
    if (bet >= 10000) { //Taunt player for betting everything
    msgAllIn()
   }// roll straight from here
-  bets++
-  clean(2) // wipe balance and bet lines
-  setRawMode() // disable keyboard input
+ // bets++
+ // clean(2) // wipe balance and bet lines
+ // setRawMode() // disable keyboard input
   funcRoll(bet)
  }
  if (lcentry == "half") {
   bet = cash / 2
-  bets++
-  clean(2)
-  setRawMode()
+  //bets++
+  //clean(2)
+  //setRawMode()
   funcRoll(bet)
  }
  if (lcentry == "tenth") {
- bet = cash / 10
- bets++
- clean(2)
- setRawMode()
- funcRoll(bet)
+  bet = cash / 10
+  //bets++
+  //clean(2)  // these lines are redundant. they've been moved to the top of funcRoll
+  //setRawMode()
+  funcRoll(bet)
+ }
+ if (lcentry == "last" || lcentry == "l") {
+  bet = lastBet
+  if (bet > cash) {
+   clean(2)
+   fmt.Print("Not enough cash. You have $", cash)
+   funcBet()
+  }
+  //bets++
+  //clean(2)
+  //setRawMode()
+  funcRoll(bet)
  }
  killSelfAction := []string{"suicide", "kill self", "end life", "commit suicide", "shoot self", "blow brains out"}
  if contains(killSelfAction, lcentry) {
@@ -437,13 +449,18 @@ func funcBet() {
  if (bet <= 0) { // Quit sequence
   quitSeq()
  }
- bets++ // bet succeeded by this point
- clean(2) // wipe balance and bet lines
- setRawMode() // disable keyboard input
+// bets++ // bet succeeded by this point
+// clean(2) // wipe balance and bet lines
+// setRawMode() // disable keyboard input
+// lastBet = bet
  funcRoll(bet)
 }
 
 func funcRoll(bet int) {
+ bets++ // bet succeeded by this point
+ clean(2) // wipe balance and bet lines
+ setRawMode() // disable keyboard input
+ lastBet = bet
  moveUp(3)
  rate = 10 // old value: 8
  frameMax := 256
@@ -452,6 +469,9 @@ func funcRoll(bet int) {
   r := rand.Intn(4) // r is just a new variable for this RNG
   if (r == 1) {
    jammed = true
+   if (bets == 0) {
+    jam = rand.Intn(frameMax-50) + 50 // makes the first bet actually fair
+   }
    jam = rand.Intn(frameMax)
  } else {
   jam = frameMax //else, no jamming)
@@ -671,6 +691,7 @@ func startupChecks() {
 func restart() { // restart the game
         clean(6)
         Reset = "\033[0m"
+        bets = 0
         achievements = 0
         celebrateMil = true // Celebrate breaking over one million
         celebrate1k  = true // Celebrate breaking a thousand
@@ -682,6 +703,11 @@ func restart() { // restart the game
         ach1337 = false
         drugdealerDead = false
         bartenderDead  = false
+        intoxication = 0
+        beers = 0
+        weeds = 0
+        rehabVisits = 0
+        lastBet = 0
         main()
 
 }
